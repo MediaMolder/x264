@@ -757,6 +757,9 @@ struct x264_t
 
     x264_lookahead_t *lookahead;
 
+    /* csv log file handle */
+    FILE *csvfh;
+
 #if HAVE_OPENCL
     x264_opencl_t opencl;
 #endif

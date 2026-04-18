@@ -1239,6 +1239,8 @@ REALIGN_STACK int x264_param_parse( x264_param_t *p, const char *name, const cha
         p->i_log_level = atoi(value);
     OPT("dump-yuv")
         CHECKED_ERROR_PARAM_STRDUP( p->psz_dump_yuv, p, value );
+    OPT("csv")
+        CHECKED_ERROR_PARAM_STRDUP( p->psz_csv, p, value );
     OPT2("analyse", "partitions")
     {
         p->analyse.inter = 0;

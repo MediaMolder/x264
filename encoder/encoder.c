@@ -1521,6 +1521,8 @@ x264_t *x264_encoder_open( x264_param_t *param, void *api )
         CHECKED_PARAM_STRDUP( h->param.psz_cqm_file, &h->param, h->param.psz_cqm_file );
     if( h->param.psz_dump_yuv )
         CHECKED_PARAM_STRDUP( h->param.psz_dump_yuv, &h->param, h->param.psz_dump_yuv );
+    if( h->param.psz_csv )
+        CHECKED_PARAM_STRDUP( h->param.psz_csv, &h->param, h->param.psz_csv );
     if( h->param.rc.psz_stat_out )
         CHECKED_PARAM_STRDUP( h->param.rc.psz_stat_out, &h->param, h->param.rc.psz_stat_out );
     if( h->param.rc.psz_stat_in )
@@ -1753,6 +1755,32 @@ x264_t *x264_encoder_open( x264_param_t *param, void *api )
     }
 #endif
 
+    /* Open CSV log file for per-frame statistics */
+    if( h->param.psz_csv )
+    {
+        h->csvfh = x264_fopen( h->param.psz_csv, "r" );
+        if( h->csvfh )
+        {
+            /* File already exists; reopen in append mode */
+            fclose( h->csvfh );
+            h->csvfh = x264_fopen( h->param.psz_csv, "ab" );
+            if( h->csvfh )
+                fputs( "\n", h->csvfh );
+        }
+        else
+        {
+            /* New file; write CSV header */
+            h->csvfh = x264_fopen( h->param.psz_csv, "wb" );
+            if( h->csvfh )
+                fprintf( h->csvfh, "EncodeOrder, Type, POC, QP, Bytes, Y PSNR, U PSNR, V PSNR, YUV PSNR, SSIM, SSIM(dB)\n" );
+        }
+        if( !h->csvfh )
+        {
+            x264_log( h, X264_LOG_ERROR, "csv: can't write to %s\n", h->param.psz_csv );
+            goto fail;
+        }
+    }
+
     h->thread[0] = h;
     for( int i = 1; i < h->param.i_threads + !!h->param.i_sync_lookahead; i++ )
         CHECKED_MALLOC( h->thread[i], sizeof(x264_t) );
@@ -1792,6 +1820,9 @@ x264_t *x264_encoder_open( x264_param_t *param, void *api )
 
         if( allocate_threadlocal_data && x264_macroblock_cache_allocate( h->thread[i] ) < 0 )
             goto fail;
+
+        /* Share CSV log file handle across all threads */
+        h->thread[i]->csvfh = h->csvfh;
     }
 
 #if HAVE_OPENCL
@@ -4141,6 +4172,36 @@ static int encoder_frame_end( x264_t *h, x264_t *thread_current,
               frame_size,
               psz_message );
 
+    /* Per-frame CSV logging */
+    if( h->csvfh )
+    {
+        fprintf( h->csvfh, "%d, %c, %d, %.2f, %d, ",
+                 h->i_frame,
+                 h->sh.i_type == SLICE_TYPE_I ? 'I' : (h->sh.i_type == SLICE_TYPE_P ? 'P' : 'B'),
+                 h->fdec->i_poc,
+                 h->fdec->f_qp_avg_aq,
+                 frame_size );
+
+        if( h->param.analyse.b_psnr )
+            fprintf( h->csvfh, "%.2f, %.2f, %.2f, %.2f, ",
+                     pic_out->prop.f_psnr[0],
+                     pic_out->prop.f_psnr[1],
+                     pic_out->prop.f_psnr[2],
+                     pic_out->prop.f_psnr_avg );
+        else
+            fputs( "-, -, -, -, ", h->csvfh );
+
+        if( h->param.analyse.b_ssim )
+            fprintf( h->csvfh, "%.5f, %.3f",
+                     pic_out->prop.f_ssim,
+                     calc_ssim_db( pic_out->prop.f_ssim ) );
+        else
+            fputs( "-, -", h->csvfh );
+
+        fputs( "\n", h->csvfh );
+        fflush( h->csvfh );
+    }
+
     // keep stats all in one place
     thread_sync_stat( h->thread[0], h );
     // for the use of the next frame
@@ -4530,6 +4591,12 @@ void    x264_encoder_close  ( x264_t *h )
     x264_frame_delete_list( h->frames.blank_unused );
 
     h = h->thread[0];
+
+    if( h->csvfh )
+    {
+        fclose( h->csvfh );
+        h->csvfh = NULL;
+    }
 
     for( int i = 0; i < h->i_thread_frames; i++ )
         if( h->thread[i]->b_thread_active )

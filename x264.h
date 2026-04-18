@@ -578,6 +578,9 @@ typedef struct x264_param_t
     int i_slice_count_max;   /* Absolute cap on slices per frame; stops applying slice-max-size
                               * and slice-max-mbs if this is reached. */
 
+    /* filename (in UTF-8) for per-frame CSV statistics log */
+    char *psz_csv;
+
     /* Optional callback for freeing this x264_param_t when it is done being used.
      * Only used when the x264_param_t sits in memory for an indefinite period of time,
      * i.e. when an x264_param_t is passed to x264_t in an x264_picture_t or in zones.

@@ -954,6 +954,7 @@ static void help( x264_param_t *defaults, int longhelp )
     H2( "      --opencl-clbin <string> Specify path of compiled OpenCL kernel cache\n" );
     H2( "      --opencl-device <integer> Specify OpenCL device ordinal\n" );
     H2( "      --dump-yuv <string>     Save reconstructed frames\n" );
+    H1( "      --csv <string>          Per-frame statistics CSV log file\n" );
     H2( "      --sps-id <integer>      Set SPS and PPS id numbers [%d]\n", defaults->i_sps_id );
     H2( "      --aud                   Use access unit delimiters\n" );
     H2( "      --force-cfr             Force constant framerate timestamp generation\n" );
@@ -1136,6 +1137,7 @@ static struct option long_options[] =
     { "log-level",            required_argument, NULL, OPT_LOG_LEVEL },
     { "no-progress",          no_argument,       NULL, OPT_NOPROGRESS },
     { "dump-yuv",             required_argument, NULL, 0 },
+    { "csv",                  required_argument, NULL, 0 },
     { "sps-id",               required_argument, NULL, 0 },
     { "aud",                  no_argument,       NULL, 0 },
     { "nr",                   required_argument, NULL, 0 },
