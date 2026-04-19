@@ -776,6 +776,10 @@ static void help( x264_param_t *defaults, int longhelp )
         "                              QP is optional (none lets x264 choose). Frametypes: I,i,K,P,B,b.\n"
         "                                  K=<I or i> depending on open-gop setting\n"
         "                              QPs are restricted by qpmin/qpmax.\n" );
+    H2( "      --lambda-file <string>  Specify a text file with custom lambda tables\n"
+        "                              82 floats for lambda_tab, then 82 for lambda2_tab.\n"
+        "                              Commas are whitespace, # starts comments.\n"
+        "                              NOTE: lambda tables are process-global.\n" );
     H1( "\n" );
     H1( "Analysis:\n" );
     H1( "\n" );
@@ -1123,6 +1127,7 @@ static struct option long_options[] =
     { "cplxblur",             required_argument, NULL, 0 },
     { "zones",                required_argument, NULL, 0 },
     { "qpfile",               required_argument, NULL, OPT_QPFILE },
+    { "lambda-file",          required_argument, NULL, 0 },
     { "threads",              required_argument, NULL, 0 },
     { "lookahead-threads",    required_argument, NULL, 0 },
     { "sliced-threads",       no_argument,       NULL, 0 },

@@ -1241,6 +1241,8 @@ REALIGN_STACK int x264_param_parse( x264_param_t *p, const char *name, const cha
         CHECKED_ERROR_PARAM_STRDUP( p->psz_dump_yuv, p, value );
     OPT("csv")
         CHECKED_ERROR_PARAM_STRDUP( p->psz_csv, p, value );
+    OPT("lambda-file")
+        CHECKED_ERROR_PARAM_STRDUP( p->psz_lambda_file, p, value );
     OPT2("pools", "numa-pools")
         CHECKED_ERROR_PARAM_STRDUP( p->psz_pools, p, value );
     OPT2("analyse", "partitions")

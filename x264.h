@@ -591,6 +591,12 @@ typedef struct x264_param_t
     /* filename (in UTF-8) for per-frame CSV statistics log */
     char *psz_csv;
 
+    /* filename for custom lambda tables (x265-compatible).
+     * Text file with QP_MAX_MAX+1 (82) floats for x264_lambda_tab,
+     * then QP_MAX_MAX+1 (82) floats for x264_lambda2_tab.
+     * Commas are whitespace, # starts comments. */
+    char *psz_lambda_file;
+
     /* Optional callback for freeing this x264_param_t when it is done being used.
      * Only used when the x264_param_t sits in memory for an indefinite period of time,
      * i.e. when an x264_param_t is passed to x264_t in an x264_picture_t or in zones.

@@ -94,7 +94,7 @@ const float x264_log2_lz_lut[32] =
  *****************************************************************************/
 
 /* lambda = pow(2,qp/6-2) */
-const uint16_t x264_lambda_tab[QP_MAX_MAX+1] =
+uint16_t x264_lambda_tab[QP_MAX_MAX+1] =
 {
    1,   1,   1,   1,   1,   1,   1,   1, /*  0- 7 */
    1,   1,   1,   1,   1,   1,   1,   1, /*  8-15 */
@@ -111,7 +111,7 @@ const uint16_t x264_lambda_tab[QP_MAX_MAX+1] =
 
 /* lambda2 = pow(lambda,2) * .9 * 256 */
 /* Capped to avoid overflow */
-const int x264_lambda2_tab[QP_MAX_MAX+1] =
+int x264_lambda2_tab[QP_MAX_MAX+1] =
 {
        14,       18,       22,       28,       36,       45,      57,      72, /*  0- 7 */
        91,      115,      145,      182,      230,      290,     365,     460, /*  8-15 */

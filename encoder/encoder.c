@@ -1564,6 +1564,8 @@ x264_t *x264_encoder_open( x264_param_t *param, void *api )
         CHECKED_PARAM_STRDUP( h->param.psz_csv, &h->param, h->param.psz_csv );
     if( h->param.psz_pools )
         CHECKED_PARAM_STRDUP( h->param.psz_pools, &h->param, h->param.psz_pools );
+    if( h->param.psz_lambda_file )
+        CHECKED_PARAM_STRDUP( h->param.psz_lambda_file, &h->param, h->param.psz_lambda_file );
     if( h->param.rc.psz_stat_out )
         CHECKED_PARAM_STRDUP( h->param.rc.psz_stat_out, &h->param, h->param.rc.psz_stat_out );
     if( h->param.rc.psz_stat_in )
@@ -1747,6 +1749,57 @@ x264_t *x264_encoder_open( x264_param_t *param, void *api )
     if( !h->param.cpu )
         p += sprintf( p, " none!" );
     x264_log( h, X264_LOG_INFO, "%s\n", buf );
+
+    /* Parse custom lambda tables from file (x265-compatible format) */
+    if( h->param.psz_lambda_file )
+    {
+        FILE *fh = x264_fopen( h->param.psz_lambda_file, "r" );
+        if( !fh )
+        {
+            x264_log( h, X264_LOG_ERROR, "can't open lambda-file `%s'\n", h->param.psz_lambda_file );
+            goto fail;
+        }
+        char line[2048];
+        int count = 0;
+        int table_size = QP_MAX_MAX + 1; /* 82 entries per table */
+        double vals[164]; /* two tables of 82 */
+        while( fgets( line, sizeof(line), fh ) )
+        {
+            /* strip comments */
+            char *hash = strchr( line, '#' );
+            if( hash ) *hash = '\0';
+            /* replace commas with spaces */
+            for( char *c = line; *c; c++ )
+                if( *c == ',' ) *c = ' ';
+            char *p2 = line;
+            while( count < table_size * 2 )
+            {
+                char *end;
+                double v = strtod( p2, &end );
+                if( end == p2 ) break;
+                vals[count++] = v;
+                p2 = end;
+            }
+        }
+        fclose( fh );
+        if( count < table_size * 2 )
+        {
+            x264_log( h, X264_LOG_ERROR, "lambda-file `%s': expected %d values, got %d\n",
+                      h->param.psz_lambda_file, table_size * 2, count );
+            goto fail;
+        }
+        for( int i = 0; i < table_size; i++ )
+        {
+            x264_lambda_tab[i] = (uint16_t)X264_MIN( vals[i] + 0.5, 65535 );
+            x264_lambda2_tab[i] = (int)X264_MIN( vals[table_size + i] + 0.5, 134217727 );
+        }
+        x264_log( h, X264_LOG_DEBUG, "lambda-file: read %d values from `%s'\n",
+                  count, h->param.psz_lambda_file );
+        for( int i = 0; i < table_size; i++ )
+            x264_log( h, X264_LOG_DEBUG, "  lambda_tab[%d] = %d\n", i, x264_lambda_tab[i] );
+        for( int i = 0; i < table_size; i++ )
+            x264_log( h, X264_LOG_DEBUG, "  lambda2_tab[%d] = %d\n", i, x264_lambda2_tab[i] );
+    }
 
     if( x264_analyse_init_costs( h ) )
         goto fail;

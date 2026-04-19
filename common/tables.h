@@ -40,8 +40,8 @@ extern const float   x264_log2_lut[128];
 extern const float   x264_log2_lz_lut[32];
 
 #define QP_MAX_MAX (51+6*2+18)
-extern const uint16_t x264_lambda_tab[QP_MAX_MAX+1];
-extern const int      x264_lambda2_tab[QP_MAX_MAX+1];
+extern uint16_t x264_lambda_tab[QP_MAX_MAX+1];
+extern int      x264_lambda2_tab[QP_MAX_MAX+1];
 extern const int      x264_trellis_lambda2_tab[2][QP_MAX_MAX+1];
 #define MAX_CHROMA_LAMBDA_OFFSET 36
 extern const uint16_t x264_chroma_lambda2_offset_tab[MAX_CHROMA_LAMBDA_OFFSET+1];
