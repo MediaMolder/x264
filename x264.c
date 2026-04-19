@@ -945,6 +945,12 @@ static void help( x264_param_t *defaults, int longhelp )
     H2( "      --sliced-threads        Low-latency but lower-efficiency threading\n" );
     H2( "      --thread-input          Run Avisynth in its own thread\n" );
     H2( "      --sync-lookahead <integer> Number of buffer frames for threaded lookahead\n" );
+    H1( "      --pools <string>        NUMA thread pool configuration (x265-compatible)\n"
+        "                                  \"+\"    = all cores, all nodes (with affinity)\n"
+        "                                  \"8,8\"  = 8 threads per node\n"
+        "                                  \"+,-\"  = all cores on node 0 only\n"
+        "                                  \"none\" = disable thread pools\n" );
+    H2( "      --numa-pools <string>   Alias for --pools\n" );
     H2( "      --non-deterministic     Slightly improve quality of SMP, at the cost of repeatability\n" );
     H2( "      --cpu-independent       Ensure exact reproducibility across different cpus,\n"
         "                                  as opposed to letting them select different algorithms\n" );
@@ -1128,6 +1134,8 @@ static struct option long_options[] =
     { "slices-max",           required_argument, NULL, 0 },
     { "thread-input",         no_argument,       NULL, OPT_THREAD_INPUT },
     { "sync-lookahead",       required_argument, NULL, 0 },
+    { "pools",                required_argument, NULL, 0 },
+    { "numa-pools",           required_argument, NULL, 0 },
     { "non-deterministic",    no_argument,       NULL, 0 },
     { "cpu-independent",      no_argument,       NULL, 0 },
     { "psnr",                 no_argument,       NULL, 0 },

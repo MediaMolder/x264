@@ -564,6 +564,45 @@ static int validate_parameters( x264_t *h, int b_open )
         int max_threads = X264_MAX( 1, (h->param.i_height+15)/16 / 2 );
         h->param.i_threads = X264_MIN( h->param.i_threads, max_threads );
     }
+    /* --pools / --numa-pools overrides thread count */
+    if( h->param.psz_pools && *h->param.psz_pools )
+    {
+        if( !strcasecmp( h->param.psz_pools, "none" ) )
+            h->param.i_threads = 1;
+        else if( strcmp( h->param.psz_pools, "*" ) )
+        {
+            /* Count total threads from pools string */
+            int num_nodes = 1;
+            int total = 0;
+            const char *p = h->param.psz_pools;
+            for( int node = 0; node < 64 && *p; node++ )
+            {
+                while( *p == ' ' ) p++;
+                if( *p == '+' )
+                {
+                    total += x264_cpu_num_processors();
+                    p++;
+                }
+                else if( *p == '-' )
+                    p++;
+                else if( *p == '*' )
+                {
+                    for( int n = node; n < num_nodes; n++ )
+                        total += x264_cpu_num_processors();
+                    break;
+                }
+                else if( *p >= '0' && *p <= '9' )
+                {
+                    total += atoi( p );
+                    while( *p >= '0' && *p <= '9' ) p++;
+                }
+                while( *p == ' ' ) p++;
+                if( *p == ',' ) p++;
+            }
+            if( total > 0 )
+                h->param.i_threads = total;
+        }
+    }
     int max_sliced_threads = X264_MAX( 1, (h->param.i_height+15)/16 / 4 );
     if( h->param.i_threads > 1 )
     {
@@ -1523,6 +1562,8 @@ x264_t *x264_encoder_open( x264_param_t *param, void *api )
         CHECKED_PARAM_STRDUP( h->param.psz_dump_yuv, &h->param, h->param.psz_dump_yuv );
     if( h->param.psz_csv )
         CHECKED_PARAM_STRDUP( h->param.psz_csv, &h->param, h->param.psz_csv );
+    if( h->param.psz_pools )
+        CHECKED_PARAM_STRDUP( h->param.psz_pools, &h->param, h->param.psz_pools );
     if( h->param.rc.psz_stat_out )
         CHECKED_PARAM_STRDUP( h->param.rc.psz_stat_out, &h->param, h->param.rc.psz_stat_out );
     if( h->param.rc.psz_stat_in )
@@ -1737,10 +1778,10 @@ x264_t *x264_encoder_open( x264_param_t *param, void *api )
     CHECKED_MALLOC( h->reconfig_h, sizeof(x264_t) );
 
     if( h->param.i_threads > 1 &&
-        x264_threadpool_init( &h->threadpool, h->param.i_threads ) )
+        x264_threadpool_init( &h->threadpool, h->param.i_threads, h->param.psz_pools ) )
         goto fail;
     if( h->param.i_lookahead_threads > 1 &&
-        x264_threadpool_init( &h->lookaheadpool, h->param.i_lookahead_threads ) )
+        x264_threadpool_init( &h->lookaheadpool, h->param.i_lookahead_threads, NULL ) )
         goto fail;
 
 #if HAVE_OPENCL

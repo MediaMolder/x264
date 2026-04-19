@@ -32,6 +32,7 @@ Configuration options:
   --disable-gpl            disable GPL-only features
   --disable-thread         disable multithreaded encoding
   --disable-win32thread    disable win32threads (windows only)
+  --disable-libnuma        disable libnuma NUMA thread affinity support
   --disable-interlaced     disable interlaced encoding support
   --bit-depth=BIT_DEPTH    set output bit depth (8, 10, all) [all]
   --chroma-format=FORMAT   output chroma format (400, 420, 422, 444, all) [all]
@@ -389,6 +390,7 @@ lsmash="auto"
 mp4="no"
 gpl="yes"
 thread="auto"
+libnuma="auto"
 swscale="auto"
 asm="auto"
 interlaced="yes"
@@ -424,7 +426,7 @@ NL="
 CONFIG_HAVE="MALLOC_H ALTIVEC ALTIVEC_H MMX ARMV6 ARMV6T2 NEON AARCH64 BEOSTHREAD POSIXTHREAD WIN32THREAD THREAD LOG2F SWSCALE \
              LAVF FFMS GPAC AVS GPL VECTOREXT INTERLACED CPU_COUNT OPENCL THP LSMASH X86_INLINE_ASM AS_FUNC INTEL_DISPATCHER \
              MSA LSX MMAP WINRT VSX ARM_INLINE_ASM STRTOK_R CLOCK_GETTIME BITDEPTH8 BITDEPTH10 ELF_AUX_INFO GETAUXVAL \
-             SYSCONF SYNC_FETCH_AND_ADD \
+             SYSCONF SYNC_FETCH_AND_ADD LIBNUMA \
              DOTPROD I8MM SVE SVE2 \
              RISCV64 RVV \
              AS_ARCHEXT_DOTPROD_DIRECTIVE AS_ARCHEXT_I8MM_DIRECTIVE AS_ARCHEXT_SVE_DIRECTIVE AS_ARCHEXT_SVE2_DIRECTIVE"
@@ -511,6 +513,9 @@ for opt do
             ;;
         --disable-win32thread)
             [ "$thread" != "no" ] && thread="posix"
+            ;;
+        --disable-libnuma)
+            libnuma="no"
             ;;
         --disable-swscale)
             swscale="no"
@@ -1186,6 +1191,17 @@ if [ "$thread" = "posix" ]; then
 fi
 [ "$thread" != "no" ] && define HAVE_THREAD
 
+if [ "$libnuma" != "no" -a "$thread" = "posix" ] ; then
+    libnuma="no"
+    if cc_check numa.h -lnuma "numa_available(); numa_max_node(); numa_node_of_cpu(0);" ; then
+        libnuma="yes"
+        LDFLAGS="$LDFLAGS -lnuma"
+        define HAVE_LIBNUMA
+    fi
+else
+    libnuma="no"
+fi
+
 if cc_check '' '' 'int *val; __sync_fetch_and_add(&val, 1);' ; then
     define HAVE_SYNC_FETCH_AND_ADD
 fi
@@ -1750,6 +1766,7 @@ ffms:           $ffms
 mp4:            $mp4
 gpl:            $gpl
 thread:         $thread
+libnuma:        $libnuma
 opencl:         $opencl
 filters:        $filters
 lto:            $lto

@@ -323,6 +323,16 @@ typedef struct x264_param_t
     int         b_cpu_independent; /* force canonical behavior rather than cpu-dependent optimal algorithms */
     int         i_sync_lookahead; /* threaded lookahead buffer */
 
+    /* NUMA thread pool configuration (x265-compatible syntax).
+     *   ""/"*"     = default (all cores, no affinity)
+     *   "none"/"-" = disable thread pools
+     *   "8,8"      = 8 threads on node 0, 8 on node 1
+     *   "+,-"      = all cores on node 0, none on node 1
+     *   "+"        = all cores on all nodes with affinity
+     * Requires libnuma on Linux for actual NUMA pinning;
+     * on other platforms controls thread count only. */
+    char        *psz_pools;
+
     /* Video Properties */
     int         i_width;
     int         i_height;
