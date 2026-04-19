@@ -81,14 +81,14 @@ devices with known profile limitations.
 ### `--preset <string>`
 
 Select a collection of encoding settings that trade compression efficiency
-against encoding speed. Preset settings are applied first and can be overridden
+against encoding speed. Preset settings are applied first and will be overridden
 by any explicitly specified option.
 
 | Value | Type | Default | Accepted |
 |-------|------|---------|----------|
 | string | — | `medium` | `ultrafast`, `superfast`, `veryfast`, `faster`, `fast`, `medium`, `slow`, `slower`, `veryslow`, `placebo` |
 
-Set this to the slowest you can tolerate. `placebo` offers negligible quality
+Set this to the slowest you can tolerate. `placebo` offers negligible compression efficiency
 gains over `veryslow` at enormous speed cost.
 
 **Preset parameter matrix** (blank cells = same as `medium` default):
