@@ -37,6 +37,8 @@ X264_API void  x264_threadpool_run( x264_threadpool_t *pool, void *(*func)(void 
 X264_API void *x264_threadpool_wait( x264_threadpool_t *pool, void *arg );
 #define x264_threadpool_delete x264_template(threadpool_delete)
 X264_API void  x264_threadpool_delete( x264_threadpool_t *pool );
+#define x264_threadpool_busy_count x264_template(threadpool_busy_count)
+X264_API int   x264_threadpool_busy_count( x264_threadpool_t *pool );
 #else
 #define x264_threadpool_init(p,t,s) -1
 #define x264_threadpool_run(p,f,a)

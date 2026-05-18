@@ -298,3 +298,14 @@ void x264_threadpool_delete( x264_threadpool_t *pool )
     x264_free( pool->numa_node );
     x264_free( pool );
 }
+
+int x264_threadpool_busy_count( x264_threadpool_t *pool )
+{
+    x264_pthread_mutex_lock( &pool->uninit.mutex );
+    int uninit = pool->uninit.i_size;
+    x264_pthread_mutex_unlock( &pool->uninit.mutex );
+    x264_pthread_mutex_lock( &pool->done.mutex );
+    int done = pool->done.i_size;
+    x264_pthread_mutex_unlock( &pool->done.mutex );
+    return pool->threads - uninit - done;
+}

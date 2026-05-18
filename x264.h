@@ -1004,6 +1004,11 @@ X264_API int x264_encoder_delayed_frames( x264_t * );
  *      return the maximum number of delayed (buffered) frames that can occur with the current
  *      parameters. */
 X264_API int x264_encoder_maximum_delayed_frames( x264_t * );
+/* x264_encoder_get_thread_busy_count:
+ *      Return the number of pool worker threads actively executing encode jobs.
+ *      Returns  0 if the encoder is single-threaded (no thread pool).
+ *      Returns -1 if the encoder uses frame-level threading (no pool). */
+X264_API int x264_encoder_get_thread_busy_count( x264_t * );
 /* x264_encoder_intra_refresh:
  *      If an intra refresh is not in progress, begin one with the next P-frame.
  *      If an intra refresh is in progress, begin one as soon as the current one finishes.

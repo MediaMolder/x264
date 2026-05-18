@@ -4762,3 +4762,12 @@ int x264_encoder_maximum_delayed_frames( x264_t *h )
 {
     return h->frames.i_delay;
 }
+
+int x264_encoder_get_thread_busy_count( x264_t *h )
+{
+    if( h->i_thread_frames > 1 )
+        return -1;
+    if( !h->threadpool )
+        return 0;
+    return x264_threadpool_busy_count( h->threadpool );
+}
